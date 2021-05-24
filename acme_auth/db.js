@@ -5,6 +5,7 @@ const config = {
 };
 const JWT = require('jsonwebtoken');
 const SECRET = process.env.JWT;
+const bcrypt = require('bcrypt');
 
 if (process.env.LOGGING) {
   delete config.logging;
@@ -24,7 +25,7 @@ User.byToken = async (token) => {
     const userInfo = await JWT.verify(token, SECRET);
     console.log("userInfo", userInfo)
     if (userInfo) {
-      const user = await User.findByPk(token);
+      const user = await User.findByPk(userInfo.id);
       return user;
     }
     const error = Error('bad credentials');
@@ -38,6 +39,16 @@ User.byToken = async (token) => {
 };
 
 User.authenticate = async ({ username, password }) => {
+  console.log("authenticate")
+  const hash = await User.findOne({
+    where: {
+      username
+    }
+  })
+  console.log("hash", hash)
+  bcrypt.compare(password, hash, function() {
+    return password = hash
+  })
   const user = await User.findOne({
     where: {
       username,
@@ -55,6 +66,32 @@ User.authenticate = async ({ username, password }) => {
 User.prototype.verifyPassword = function (password) {
   return password === this.password;
 };
+
+User.beforeCreate((user, options) => {
+
+  return bcrypt.hash(user.password, 10)
+      .then(hash => {
+          user.password = hash;
+      })
+      .catch(err => { 
+          throw new Error(); 
+      });
+});
+
+
+// User.beforeCreate(async function(user) {
+//   console.log("beforeCreate")
+//   const salt = 10;
+//   await bcrypt.hash(user.password, salt, function(error, hash) {
+//     try {
+//       console.log("hash", hash)
+//       console.log("password", user.password)
+//      user.password = hash
+     
+//      console.log("after", user.password)
+//     } catch (error) { console.error("oops") }
+//   })
+// })
 
 const syncAndSeed = async () => {
   await conn.sync({ force: true });

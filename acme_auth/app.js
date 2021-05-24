@@ -20,7 +20,8 @@ app.post('/api/auth', async (req, res, next) => {
     });
     if (user && user.verifyPassword(password)) {
       // generate token
-      const token = await JWT.sign({ id: user.id }, SECRET);
+      const id = await User.authenticate(req.body)
+      const token = await JWT.sign({ id }, SECRET);
       res.send({ token });
     } else {
       res.status(401).send('Incorrect credentials');
