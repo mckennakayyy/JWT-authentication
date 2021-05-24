@@ -12,13 +12,13 @@ app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')));
 
 app.post('/api/auth', async (req, res, next) => {
   try {
-    const { username, password } = req.body;
+    const { username } = req.body;
     const user = await User.findOne({
       where: {
         username,
       },
     });
-    if (user && user.verifyPassword(password)) {
+    if (user) {
       // generate token
       const id = await User.authenticate(req.body)
       const token = await JWT.sign({ id }, SECRET);

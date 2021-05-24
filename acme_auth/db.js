@@ -40,22 +40,15 @@ User.byToken = async (token) => {
 
 User.authenticate = async ({ username, password }) => {
   console.log("authenticate")
-  const hash = await User.findOne({
+  const user = await User.findOne({
     where: {
       username
     }
   })
-  console.log("hash", hash)
-  bcrypt.compare(password, hash, function() {
-    return password = hash
-  })
-  const user = await User.findOne({
-    where: {
-      username,
-      password,
-    },
-  });
-  if (user) {
+  console.log("user", user)
+  const hash = user.password
+  const verified = await bcrypt.compare(password, hash)
+  if (user && verified) {
     return user.id;
   }
   const error = Error('bad credentials');
@@ -63,9 +56,9 @@ User.authenticate = async ({ username, password }) => {
   throw error;
 };
 
-User.prototype.verifyPassword = function (password) {
-  return password === this.password;
-};
+// User.prototype.verifyPassword = function (password) {
+//   return password === this.password;
+// };
 
 User.beforeCreate((user, options) => {
 
