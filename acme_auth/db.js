@@ -22,6 +22,7 @@ const User = conn.define('user', {
 User.byToken = async (token) => {
   try {
     const userInfo = await JWT.verify(token, SECRET);
+    console.log("userInfo", userInfo)
     if (userInfo) {
       const user = await User.findByPk(token);
       return user;
